@@ -1,0 +1,18 @@
+This is a mysql dump program.
+
+Because it applies to my own environment, I need to read a file.
+
+File format:
+
+ServerId  ServerName  addr  username  password  port
+......
+......
+......
+ServerId  ServerName  addr  username  password  port
+
+
+
+
+
+
+
