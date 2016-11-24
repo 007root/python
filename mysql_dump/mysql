@@ -1,0 +1,36 @@
+#!/usr/bin/env python2.7
+#coding:utf-8
+
+import datetime,binascii
+FORMATTIME = ('%Y-%m-%d %H:%M:%S')
+
+sql_type = ['int','bigint','tinyint','smallint','float','binary','longblob','blob','text','longtext','char','varchar','timestamp','datetime','time']
+def Format(SQL,TYPE):
+	if TYPE not in sql_type:
+		print 'Invalid format TYPE : %s'%TYPE
+		exit(1)
+	if TYPE == 'int' or TYPE == 'bigint' or TYPE == 'tinyint' or TYPE == 'smallint':
+		SQL = int(SQL)
+		return SQL
+	if TYPE == 'text' or TYPE == 'longtext' or TYPE == 'char' or TYPE == 'varchar':
+		SQL = str(SQL)
+		return "'%s'"%SQL
+	if TYPE == 'binary' or TYPE == 'longblob' or TYPE == 'blob':
+		SQL = binascii.b2a_hex(SQL)
+		return 'X' + "'%s'"%SQL
+	if TYPE == 'float':
+		SQL = float(SQL)
+		return SQL
+	if TYPE == 'datetime' or TYPE == 'time' or TYPE == 'timestamp':
+		SQL = datetime.datetime.strftime(SQL,FORMATTIME)
+		return "'%s'"%SQL
+	
+
+
+
+
+
+
+
+
+

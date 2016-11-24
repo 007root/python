@@ -1,0 +1,27 @@
+#!/bin/bash
+
+#
+# AVATAR  Id,ChannelId,Robot
+# PURCHASE  AvatarId,CreateTime,ProductId
+#
+if [ -z $1 ]; then
+        echo -e '\033[31mPlease enter filename\033[0m'
+        exit 1
+elif [ ! -e $1 ]; then
+        echo -e '\033[31mNo such file\033[0m'
+        exit 2
+fi
+final=0
+while read line
+do
+        server=`echo $line | awk '{print $1}' |grep -oE "[0-9]+"`
+        ip=`echo $line | awk '{print $3}'`
+        port=`echo $line | awk '{print $6}'`
+
+        python dumpsql -h $ip -P $port -u csgj -p podfa_Yoe910Foe -D gameservice -t purchase -f AvatarId,CreateTime,ProductId > purchase$port.sql
+	let final++
+done < $1
+
+zip purchase$1.zip *.sql
+rm -rf *.sql
+echo 'Final: '$final

@@ -1,0 +1,118 @@
+#!/usr/bin/env python
+
+
+import MySQLdb,mysql,re,sys,getopt
+import MySQLdb.cursors
+
+def usage():
+	print 'Usage: %s  { [-h host]  [-P port] [-u user] [-p passwd]  [-D database] [-t table]} [-f field] '%sys.argv[0]
+	print '''
+	-h  Mysql address
+	-P  Mysql listening port
+	-u  Login mysql username
+	-p  Login mysql password
+	-D  The library to be connected
+	-t  The data table that needs to be connected
+	-f  Fields that need to be exported. If -f is not used, the program exports the entire table
+		format:
+		-f id,name,sex
+	'''
+try:
+	opts,args = getopt.getopt(sys.argv[1:],"h:p:P:D:t:u:f:")
+except getopt.GetoptError:
+	usage()
+	exit(1)
+for a in sys.argv:
+	if len(re.findall('[-]..',a)):
+		usage()
+		exit(2)
+option = ['-h','-p','-P','-u','-D','-t']
+op_list = []
+for i in opts:
+	op_list.append(i[0])
+if set(option) - set(op_list):
+	usage()
+	exit(3)
+for op,value in opts:
+	if op == '-h':
+		Host = value
+	if op == '-p':
+		Passwd = value
+	if op == '-P':
+		Port = int(value)
+	if op == '-u':
+		User = value
+	if op == '-D':
+		Database = value
+	if op == '-t':
+		Table = value
+	if op == '-f':
+		Field = value
+
+def mysql_connect(command):
+	conn = MySQLdb.connect(host=Host,user=User,passwd=Passwd,db=Database,port=Port,cursorclass=MySQLdb.cursors.SSCursor)
+	cur = conn.cursor()
+	cur.execute(command)
+	#conn.commit()
+	return cur
+	cur.close()
+	conn.close()
+
+
+
+key = []
+value = []
+TYPE = []
+if '-f' in sys.argv:
+	field_name = Field
+	for name in field_name.split(','):
+		desc = 'desc %s %s'%(Table,name)
+		desc = mysql_connect(desc)
+		for i in desc:
+			key.append(i[0])
+			TYPE.append(i[1].split('(')[0])
+else:
+	d = 'desc %s'%Table
+	d = mysql_connect(d)
+	field_name = '*'
+	for i in d:
+		key.append(i[0])
+		TYPE.append(i[1].split('(')[0])
+
+select = 'select %s from  %s'%(field_name,Table)
+cur = mysql_connect(select)
+for i in cur:
+	i = list(i)
+	count = len(TYPE)
+	f = ''
+	v = ''
+	for x in range(count):
+		if i[x] == None or i[x] == '':
+			out = 'Null'
+		else:
+			out = mysql.Format(i[x],TYPE[x])
+		f += key[x] + ','
+		v += str(out) + ','
+	f = re.sub(',$','',f)
+	v = re.sub(',$','',v)
+	field_sql = 'INSERT INTO  `%s` (%s) VALUES (%s);'%(Table.capitalize(),f,v)
+	print field_sql
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
