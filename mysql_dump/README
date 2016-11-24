@@ -10,6 +10,8 @@ ServerId  ServerName  addr  username  password  port
 ......
 ServerId  ServerName  addr  username  password  port
 
+Use command:
+# sh dump file
 
 
 
