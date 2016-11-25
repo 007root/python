@@ -1,0 +1,24 @@
+clear_foreverLog.py :
+
+Clean up the forever expiration log
+
+++++++++++++++++++++++++++++++++++++++++++++
+mysql_tablesize.py :
+
+For one database statistics every table size
+
+
+++++++++++++++++++++++++++++++++++++++++++++
+ip_source.py :
+
+Given an ip_list statistics visit the largest city
+
+
+++++++++++++++++++++++++++++++++++++++++++++++++++
+google.py :
+
+Update Windows hosts file, in this way you can access www.google.com.hk
+
+
+
+
