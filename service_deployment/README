@@ -1,0 +1,22 @@
+The first - create service
+
+In the Linux start create_server.py
+
+command:
+$ nohup create_server.py &
+
+In the Windows running create_client.py, then input in the GUI
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+The second - manage service
+
+In the Linux start manage_server.py
+
+command:
+$ nohup manage_server.py &
+
+In the Windows running manage_client.py, then choice the servername of you want to manage.
+
+
+
