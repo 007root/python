@@ -6,7 +6,14 @@ import urllib,urllib2,re
 from Tkinter import *
 
 if __name__ == '__main__':
-	htmlH = urllib2.urlopen('https://github.com/racaljk/hosts/blob/master/hosts').read()
+	try:
+		htmlH = urllib2.urlopen('https://github.com/racaljk/hosts/blob/master/hosts').read()
+	except:
+		root = Tk()
+		L3 = Label(root,text='连接更新服务器失败！！')
+		L3.pack(padx=20,pady=20)
+		root.mainloop()
+		sys.exit()
 
 	reg = '# Amazon AWS Start.*# Modified hosts end'
 	hostHtmlRe = re.search(reg,htmlH,re.S)
