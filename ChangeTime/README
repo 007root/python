@@ -1,0 +1,10 @@
+change_time.py 
+through paramiko module update time
+
+change_time_client.py
+through socket update time
+is client
+
+change_time_server.py
+through socket update time
+is server
