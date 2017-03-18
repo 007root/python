@@ -43,6 +43,7 @@ def down_file(name_num):
 		print 'Error: Your entry number invalid'
 
 while True:
+	print 'In DB %s'%db_name
 	for k,v in file_name_dict.items(): # 列出文件列表供用户选择
 		print k,v
 	print ''
