@@ -71,9 +71,11 @@ def choose(re_name,name):
     choose_num = raw_input('Pliase choose numbser or q(exit): ')
     if choose_num == "q": return 2 # exit
     if int_check(choose_num):
-        year = index_check(ret, choose_num)
-        if year == 1: return 1 # continue
-        return year
+        date = index_check(ret, choose_num)
+        if date == 1: return 1 # continue
+        return date
+    else:
+        return 1 # continue
     return 2 # exit
 
 
