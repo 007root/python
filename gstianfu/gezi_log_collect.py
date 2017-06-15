@@ -48,7 +48,10 @@ if os.path.isfile("%s/%s"% (log_dir,file_name)):
 			hash_name = re_hash.search(name)
 			if hash_name:
 				name = re.sub(hash_name.group(),'HASH',name)
-
+				
+                        # some time like 2017-04-26 00:01:00  is must be 2017-04-26 00:01:00.000000
+                        if len(data[1].split('.')) == 1:
+                                data[1] = data[1] + '.000000'
 			# conver timezone
 			value_time = data[0] + ' ' + data[1]
 			value_time = datetime.datetime.strptime(value_time,"%Y-%m-%d %H:%M:%S.%f")
