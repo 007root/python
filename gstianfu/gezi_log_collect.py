@@ -92,6 +92,9 @@ if os.path.isfile("%s/%s"% (log_dir,file_name)):
 		f = open(time_stamp_file,'w')
 		f.write(value_time)
 		f.close()
+	else:
+		logger.error('Not value_time')
+		
 		
 
 
