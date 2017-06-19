@@ -2,11 +2,17 @@
 
 from influxdb import InfluxDBClient
 import datetime
+import logging
 import time
 import os
 import re
 import sys
 from mail import send_mail
+
+fh = logging.FileHandler('/tmp/influxdb.log')
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+fh.setFormatter(formatter)
+logger.addHandler(fh)
 
 re_hash = re.compile(r'[0-9a-fA-F]{11,48}')
 value_time = ''
@@ -32,13 +38,16 @@ if os.path.isfile("%s/%s"% (log_dir,file_name)):
 		data = os.popen("grep -a -A 81 '%s' %s/%s | sed -n '2,$p' | \
 			awk '{if ($6 ~ /'GET'/ && $7 ~ /api/) print $2,$3,$6,$7,$(NF-3);\
 			else if ($6 ~ /api/)  print $2,$3,$5,$6,$(NF-3)}'"% (time_stamp,log_dir,file_name)).read().strip()
+		logger.info('grep')
 	else:
 		data = os.popen("tail -80 %s/%s | \
 			awk '{if ($6 ~ /'GET'/ && $7 ~ /api/) print $2,$3,$6,$7,$(NF-3);\
 			else if ($6 ~ /api/)  print $2,$3,$5,$6,$(NF-3)}'"% (log_dir,file_name)).read().strip()
+		logger.info('tail')
 	if data:
 		# parse data
 		data = data.split('\n')
+		logger.info('Last data: %s'%(data[-1]))
 		for i in data:
 			print i
 			data = re.sub(r'\'|"','',i).split(' ')
@@ -72,11 +81,14 @@ if os.path.isfile("%s/%s"% (log_dir,file_name)):
 			]
 			# insert data
 			client.write_points(json_body)
+	else:
+		logger.error('Not data')
 	# save timestamp
 	if value_time:
 		value_time = datetime.datetime.strptime(value_time,"%Y-%m-%d %H:%M:%S.%f")
 		value_time = value_time + datetime.timedelta(seconds=28800)
 		value_time = value_time.strftime("%Y-%m-%d %H:%M:%S.%f")
+		logger.info('Last value_time: %s'%value_time)
 		f = open(time_stamp_file,'w')
 		f.write(value_time)
 		f.close()
