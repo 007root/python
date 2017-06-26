@@ -2,9 +2,17 @@
 
 from fluent import sender
 import os
+import logging
 
+logger = logging.getLogger('fluentd')
+logger.setLevel(logging.INFO)
 
-logger = sender.FluentSender('mongodb', '192.168.4.57', 8888)
+fh = logging.FileHandler('/tmp/fluentd.log')
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+fh.setFormatter(formatter)
+logger.addHandler(fh)
+
+fl = sender.FluentSender('mongodb', '192.168.4.57', 8888)
 
 log_path = "./mongod.log"
 timestamp=None
@@ -18,17 +26,24 @@ except IOError:
 
 # query time >= 300ms
 if timestamp:
+    logger.info('method grep')
     logs = os.popen("grep -v 'aggregate' %s \
                  | grep -A 100 '%s' | sed -n '2,$p'\
                  | egrep '[3-9][0-9]{2}ms|[0-9]{4,}ms'"% (log_path, timestamp)).read()
 else:
+    logger.info('method tail')
     logs = os.popen("grep -v 'aggregate' %s \
                     | tail -10 | egrep '[3-9][0-9]{2}ms|[0-9]{4,}ms'"% log_path).read()
 
 if logs:
-    for i in logs.strip('\n').split('\n'):
-        logger.emit('slowquery',i)
+    logs_list = logs.strip('\n').split('\n')
+    logger.info('write count %s'% len(logs_list))
+    for i in logs_list:
+        fl.emit('slowquery',i)
     else:
         f = open('./.fluentd_timestamp','w')
         f.write(i.split(' ')[0])
         f.close()
+        logger.info('Last date "%s"'% i.split(' ')[0])
+else:
+    logger.info('Not data')
