@@ -27,12 +27,12 @@ except IOError:
 # query time >= 300ms
 if timestamp:
     logger.info('method grep')
-    logs = os.popen("grep -v 'aggregate' %s \
-                 | grep -A 100 '%s' | sed -n '2,$p'\
+    logs = os.popen("grep -a -v 'aggregate' %s \
+                 | grep -a -A 100 '%s' | sed -n '2,$p'\
                  | egrep '[3-9][0-9]{2}ms|[0-9]{4,}ms'"% (log_path, timestamp)).read()
 else:
     logger.info('method tail')
-    logs = os.popen("grep -v 'aggregate' %s \
+    logs = os.popen("grep -a -v 'aggregate' %s \
                     | tail -10 | egrep '[3-9][0-9]{2}ms|[0-9]{4,}ms'"% log_path).read()
 
     
@@ -52,8 +52,8 @@ if logs:
         logger.info('Last date "%s"'% i.split(' ')[0])
 else:
     logger.info('Not data')
-    logs = os.popen("grep -v 'aggregate' %s \
-                | grep -A 100 '%s' | tail -1" % (log_path, timestamp)).read()
+    logs = os.popen("grep -a -v 'aggregate' %s \
+                | grep -a -A 100 '%s' | tail -1" % (log_path, timestamp)).read()
     new_time = logs.split(' ')[0]
     update_time(new_time)
     logger.info('Update timestamp to %s'% new_time)
