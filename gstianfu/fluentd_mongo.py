@@ -35,15 +35,27 @@ else:
     logs = os.popen("grep -v 'aggregate' %s \
                     | tail -10 | egrep '[3-9][0-9]{2}ms|[0-9]{4,}ms'"% log_path).read()
 
+    
+def update_time(stamp):
+    f = open('./.fluentd_timestamp', 'w')
+    f.write(stamp)
+    f.close()
+
+
 if logs:
     logs_list = logs.strip('\n').split('\n')
     logger.info('write count %s'% len(logs_list))
     for i in logs_list:
         fl.emit('slowquery',i)
     else:
-        f = open('./.fluentd_timestamp','w')
-        f.write(i.split(' ')[0])
-        f.close()
+        update_time(i.split(' ')[0])
         logger.info('Last date "%s"'% i.split(' ')[0])
 else:
     logger.info('Not data')
+    logs = os.popen("grep -v 'aggregate' %s \
+                | grep -A 100 '%s' | tail -1" % (log_path, timestamp)).read()
+    new_time = logs.split(' ')[0]
+    update_time(new_time)
+    logger.info('Update timestamp to %s'% new_time)
+    
+    
