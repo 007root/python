@@ -1,0 +1,16 @@
+fast start proxy 
+
+cmd:
+
+sudo docker build -t fqproxy .
+
+sudo docker images 
+...
+fqproxy ...
+...
+
+
+
+sh vm_start.sh
+
+
