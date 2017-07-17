@@ -1,0 +1,4 @@
+#!/root/virtualenv/django/bin/python
+# EASY-INSTALL-SCRIPT: 'ansible==2.2.0','ansible-galaxy'
+__requires__ = 'ansible==2.2.0'
+__import__('pkg_resources').run_script('ansible==2.2.0', 'ansible-galaxy')

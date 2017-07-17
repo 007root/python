@@ -1,0 +1,221 @@
+{% extends 'public.html' %}
+{% block content %}
+<!--suppress ALL -->
+<h1>创建服务器</h1>
+<form id="createForm">
+	<span>端口范围:</span>
+	<label><input name="port_range" type="radio" value="3001,3002,3003,3004" checked/>3001-3004</label>
+	<label><input name="port_range" type="radio" value="4001,4002,4003,4004"/>4001-4004</label>
+	<label><input name="port_range" type="radio" value="5001,5002,5003,5004"/>5001-5004</label>
+	<label><input name="port_range" type="radio" value="6001,6002,6003,6004"/>6001-6004</label>
+	<label><input name="port_range" type="radio" value="7001,7002,7003,7004"/>7001-7004</label>
+
+
+
+
+    <p><label for="ser_id">服务器ID:</label><input id="ser_id" type="text" name="ser_id" placeholder="20001-29999"/></p>
+    <p><label for="ssh_ip">服务器内网IP:</label><input id="ssh_ip" type="text" name="ssh_ip" placeholder="Private IP "/>
+		<span>内网IP列表:</span>
+		<select id="lan_ip_list">
+			<option value="192.168.1.139">192.168.1.139</option>
+			<option value="192.168.1.11">192.168.1.11</option>
+			<option value="192.168.1.12">192.168.1.12</option>
+			<option value="192.168.1.13">192.168.1.13</option>
+			<input type="button" value="确定" onclick="choice_lan_ip()"/>
+		</select>
+	</p>
+    <p><label for="ser_name">服务器名称:</label><input id="ser_name" type="text" name="ser_name" placeholder="game01,game02..."/></p>
+    <p><label ip="admin" for="wlan_ip_port">公网IP和端口:</label><input id="wlan_ip_port" type="text" name="wlan_ip_port" placeholder="223.5.5.5:8001-8999"/></p>
+    <p><label for="game_mysql_addr">游戏数据库地址:</label><input id="game_mysql_addr" type="text" name="game_mysql_addr" placeholder="Mysql Address"/></p>
+    <p><label for="game_mysql_user">游戏数据库用户名:</label><input id="game_mysql_user" type="text" name="game_mysql_user" placeholder="Mysql User"/></p>
+    <p><label for="game_mysql_passwd">游戏数据库密码:</label><input id="game_mysql_passwd" type="text" name="game_mysql_passwd" placeholder="Mysql Password"/></p>
+    <p><label for="game_mysql_db">游戏数据库库名:</label><input id="game_mysql_db" type="text" name="game_mysql_db" placeholder="Mysql Database"/></p>
+    <p><input type="button" value="提交" id="comm"  onclick="disabled=true;commit()" /></p>
+</form>
+
+	<span>status:</span><br />
+	<div id="status" style="height:20">
+	</div><br />
+
+
+<div class="progress" style="position: relative;width: 30%;">
+  <div id="prog-bar" class="progress-bar progress-bar-success progress-bar-striped" role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" style="width: 0%">
+    <span class="sr-only">40% Complete (success)</span>
+  </div>
+</div>
+
+
+<script type="text/javascript">
+
+var ip_re=/^((25[0-4]|2[0-4][0-9]|1[0-9][0-9]|[0-9]{1,2})\.){3}(25[0-4]|2[0-4][0-9]|1[0-9][0-9]|[0-9]{1,2})$/;
+var port_re=/^8[0-9]{3}$/;
+var ser_id_re=/^2[0-9]{4}$/;
+var ser_name_re=/^game[0-9]{2,3}$/;
+
+// select ip into lan_ip
+function choice_lan_ip(){
+	var select_ip;
+	select_ip = $("#lan_ip_list").val();
+	$("#ssh_ip").val(select_ip);
+}
+
+function commit() {
+	$("#status").html('');
+	$("#prog-bar").width(0);
+
+	var port_range = $("input[name='port_range']:checked").val();
+	var ser_id = $("#ser_id").val();
+	var lan_ip = $("#ssh_ip").val();
+	var ser_name = $("#ser_name").val();
+	var wlan_ip_port=$("#wlan_ip_port").val();
+	var r_lan_ip=ip_re.exec(lan_ip);
+	var wlan_ip=ip_re.exec(wlan_ip_port.split(":")[0]);
+	var wlan_port=port_re.exec(wlan_ip_port.split(":")[1]);
+	var game_mysql = {
+		addr:$("#game_mysql_addr"),
+		user:$("#game_mysql_user"),
+		passwd:$("#game_mysql_passwd"),
+		db:$("#game_mysql_db")
+	}
+
+	// check port range
+	if (port_range == undefined){
+		alert("请选择端口范围");
+		return
+	}
+
+	// check service id
+	if (ser_id.length != 0){
+		if (ser_id_re.exec(ser_id) == null){
+			alert("服务器ID范围:20001-29999");
+			closebut();
+			return
+		}
+	}else{
+		alert("请输入服务器ID");
+		closebut();
+		return
+	}
+
+	// check private ip
+	if (r_lan_ip != null){
+		var lan_ip_pre=r_lan_ip[0].split(".")[0]
+		if (lan_ip_pre != 192 && lan_ip_pre != 10 && lan_ip_pre != 127){
+			alert("服务器内网IP必须是私有地址");
+			closebut();
+			return
+		}
+	}else{
+		alert("服务器内网IP格式错误");
+		closebut();
+		return
+	}
+
+	// check gameservice name
+	if (ser_name.length != 0){
+		if (ser_name_re.exec(ser_name) == null){
+			alert("服务器名称格式:game01,game02...");
+			closebut();
+			return
+		}
+	}else{
+		alert("请输入服务器名称");
+		closebut();
+		return
+	}
+
+	// check public ip
+	if (wlan_ip != null){
+		var wlan_ip_pre=wlan_ip[0].split(".")[0]
+		if (wlan_ip_pre == 192 || wlan_ip_pre == 127 || wlan_ip_pre == 10 || wlan_ip_pre >= 224){
+			alert("公网IP和端口必须是公有地址");
+			closebut();
+			return
+		}
+	}else{
+		alert("公网IP和端口格式错误");
+		closebut();
+		return
+	}
+
+	// check mysql input
+	for (var i in game_mysql){
+
+		if (game_mysql[i].val().length == 0){
+
+			alert(game_mysql[i].parent().text() + ' 不能为空');
+			closebut();
+			return
+		}
+	}
+
+	// check public port
+	if (wlan_port == null){
+			alert("公网端口范围8000-8999");
+			closebut();
+			return
+	}
+
+	// transmit data
+
+	$.ajax({
+		type: "POST",
+		url: "/eventsource/",
+		traditional: true,
+		dateType: "json",
+
+		data: {
+			port_range: port_range,
+			ser_id: ser_id,
+			lan_ip: lan_ip,
+			ser_name: ser_name,
+		wlan_ip_port:wlan_ip_port,
+		game_mysql_addr:game_mysql.addr.val(),
+		game_mysql_user:game_mysql.user.val(),
+		game_mysql_passwd:game_mysql.passwd.val(),
+		game_mysql_db:game_mysql.db.val()
+		},
+		success: function (msg) {
+			console.log(msg);
+			event();
+		},
+		error: function (error) {
+			closebut();
+			alert(error.responseText);
+
+		}
+
+	});
+
+	function event() {
+		var num = 0;
+		var source = new EventSource('/eventsource/');
+		source.onmessage = function (event) {
+
+			var data = event.data;
+			var origin = event.origin;
+			var lastEventId = event.lastEventId;
+			if (data == 404) {
+				closebut();
+				source.close();
+			} else {
+				num += 17;
+				old_data = $("#status").html();
+				$("#status").html(old_data + ' ' + data);
+				$("#prog-bar").width(num + "%");
+//				console.log(data);
+//				console.log(num);
+			}
+		}
+
+	}
+}
+
+// 显示提交按钮
+function closebut(){
+	$("#comm").removeAttr('disabled');
+}
+
+</script>
+
+{% endblock %}

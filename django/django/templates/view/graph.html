@@ -1,0 +1,243 @@
+{% extends 'public.html' %}
+{% block content %}
+{% load staticfiles %}
+
+<h1>服务器曲线图</h1>
+    <div>
+    <p style="margin-left: 85%">日期:</p><input type="text" id="daterange" name="daterange" style="margin-left: 85%" value="" />
+    </div>
+    <div id="disk" style="height:400px;"></div>
+    <br />
+    <div id="mem" style="height:400px;"></div>
+    <br />
+    <div id="redis" style="height:400px;"></div>
+
+    <script src="{% static 'js/jquery.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/moment.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/daterangepicker.js' %}"></script>
+    <script src="http://www.rbuy.xyz/build/dist/echarts.js"></script>
+    <script type="text/javascript">
+
+
+
+
+    require.config({
+        paths: {
+             echarts: 'http://www.rbuy.xyz/build/dist'
+        }
+    });
+    require( [
+        'echarts',
+        'echarts/chart/line'  ],
+        function (ec) {
+            // 基于准备好的dom，初始化echarts图表
+            //disk
+            var myChart1 = ec.init(document.getElementById('disk'));
+            var option1 = {
+                title: {
+                    text: '磁盘'
+                },
+                tooltip: {
+                    trigger: 'axis'
+                },
+                legend: {
+                    data: []
+                },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '3%',
+                    borderColor: 'red',
+                    containLabel: true
+                },
+                toolbox: {
+                    feature: {
+                        saveAsImage: {}
+                    }
+                },
+                xAxis: {
+                    type: 'category',
+                    boundaryGap: false,
+                    data: ['00:00', '02:00', '04:00', '06:00', '08:00', '10:00', '12:00', '14:00', '16:00', '18:00', '20:00', '22:00']
+                },
+                yAxis: {
+                    type: 'value',
+                    name: '磁盘',
+                    axisLabel: {
+                        formatter: '{value} GB'
+                    }
+                },
+                series: [
+                    {
+                        name: '',
+                        type: 'line',
+                        data: [0]
+                    }
+                ]
+            };
+            // 为echarts对象加载数据
+            myChart1.setOption(option1);
+
+            //mem
+            var myChart2 = ec.init(document.getElementById('mem'));
+            var option2 = {
+                title: {
+                    text: '内存'
+                },
+                tooltip: {
+                    trigger: 'axis'
+                },
+                legend: {
+                    data: []
+                },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '3%',
+                    containLabel: true
+                },
+                toolbox: {
+                    feature: {
+                        saveAsImage: {}
+                    }
+                },
+                xAxis: {
+                    type: 'category',
+                    boundaryGap: false,
+                    data: ['00:00', '02:00', '04:00', '06:00', '08:00', '10:00', '12:00', '14:00', '16:00', '18:00', '20:00', '22:00']
+                },
+                yAxis: {
+                    type: 'value',
+                    name: '内存',
+                    axisLabel: {
+                        formatter: '{value} MB'
+                    }
+                },
+                series: [
+                    {
+                        name: '',
+                        type: 'line',
+                        data: [0]
+                    }
+                ]
+            };
+            // 为echarts对象加载数据
+            myChart2.setOption(option2);
+
+
+            //redis
+            var myChart3 = ec.init(document.getElementById('redis'));
+            var option3 = {
+                title: {
+                    text: 'Redis'
+                },
+                tooltip: {
+                    trigger: 'axis'
+                },
+                legend: {
+                    data: []
+                },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '3%',
+                    containLabel: true
+                },
+                toolbox: {
+                    feature: {
+                        saveAsImage: {}
+                    }
+                },
+                xAxis: {
+                    type: 'category',
+                    boundaryGap: false,
+                    data: ['00:00', '02:00', '04:00', '06:00', '08:00', '10:00', '12:00', '14:00', '16:00', '18:00', '20:00', '22:00']
+                },
+                yAxis: {
+                    type: 'value',
+                    name: 'Redis',
+                    axisLabel: {
+                        formatter: '{value} MB'
+                    }
+                },
+                series: [
+                    {
+                        name: '',
+                        type: 'line',
+                        data: [0]
+                    }
+                ]
+            };
+            // 为echarts对象加载数据
+            myChart3.setOption(option3);
+
+            $(document).ready(function () {
+                $('input[name=daterange]').daterangepicker({
+                    "showDropdowns": true,
+                    "singleDatePicker": true,
+                    "autoApply": true,
+                    "minDate": "02/01/2017",
+                    "maxDate": "02/06/2017"
+                });
+                $('#daterange').on('apply.daterangepicker', function (ev, picker) {
+                    var get_date = picker.startDate.format('YYYY-MM-DD');
+                    $.ajax({
+                        url: "/view/",
+                        data: {get_date: get_date},
+                        traditional: true,
+                        type: "POST",
+                        success: function (ret) {
+                            var result = $.parseJSON(ret);
+
+                            for (var msg in result){
+                                // diskuse
+                                if (msg == "DiskUse") {
+                                    option1.series = [];
+                                    option1.legend.data = [];
+                                    for (var i in result[msg]) {
+                                        var addr = Object.keys(result[msg][i])[0];
+                                        option1.legend.data.push(addr);
+                                        option1.series.push({name: addr, type: 'line', data: result[msg][i][addr]});
+                                    }
+                                }
+                                // memuse
+                                if (msg == "MemUse") {
+                                    option2.series = [];
+                                    option2.legend.data = [];
+                                    for (var i in result[msg]) {
+                                        var addr = Object.keys(result[msg][i])[0];
+                                        option2.legend.data.push(addr);
+                                        option2.series.push({name: addr, type: 'line', data: result[msg][i][addr]})
+                                    }
+                                }
+                                // redisuse
+                                if (msg == "RedisUse") {
+                                    console.log('mem');
+                                    option3.series = [];
+                                    option3.legend.data = [];
+                                    for (i in result[msg]) {
+                                        console.log(Object.keys(result[msg][i]));
+                                        var addr = Object.keys(result[msg][i])[0];
+                                        option3.legend.data.push(addr);
+                                        option3.series.push({name: addr, type: 'line', data: result[msg][i][addr]})
+                                    }
+                                }
+                            }
+                           myChart1.setOption(option1);
+                           myChart2.setOption(option2);
+                           myChart3.setOption(option3);
+                        }
+                    });
+                });
+            });
+        }
+    );
+
+</script>
+
+{% endblock %}
+
+
+
+
+

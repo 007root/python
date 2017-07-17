@@ -1,0 +1,99 @@
+{% load staticfiles %}
+
+<head>
+    <meta charset="utf-8">
+    <title>ECharts</title>
+</head>
+<h1>admin</h1>
+<body>
+    <!-- 为ECharts准备一个具备大小（宽高）的Dom -->
+    <div id="main" style="height:400px"></div>
+    <!-- ECharts单文件引入 -->
+
+	 <script src="http://www.rbuy.xyz:83/build/dist/echarts.js"></script>
+
+    <script type="text/javascript">
+        require.config({
+            paths: {
+                 echarts: 'http://www.rbuy.xyz:83/build/dist'
+            }
+        });
+            require( [  
+				'echarts',
+				'echarts/chart/line'  ],
+            function (ec) {
+                var myChart = ec.init(document.getElementById('main'));
+                var option = {
+                       title: {
+                            text: '磁盘'
+                        },
+                        tooltip: {
+                            trigger: 'axis'
+                        },
+                        legend: {
+                            data:['game01-game05','game06-game10','game11-game15','game16-game20','game21-game25']
+                        },
+                        grid: {
+                            left: '3%',
+                            right: '4%',
+                            bottom: '3%',
+                            containLabel: true
+                        },
+                        toolbox: {
+                            feature: {
+                                saveAsImage: {}
+                            }
+                        },
+                        xAxis: {
+                            type: 'category',
+                            boundaryGap: false,
+                            data: ['00:00','02:00','04:00','06:00','08:00','10:00','12:00','14:00','16:00','18:00','20:00','22:00']
+                        },
+                        yAxis: {
+                            type: 'value',
+                            name: '磁盘',
+                            axisLabel: {
+                                formatter: '{value} GB'
+                            }
+                        },
+                        series: [
+                            {
+                                name:'game01-game05',
+                                type:'line',
+                                stack: '总量',
+                                data:[12, 13, 10, 13, 20, 23, 21]
+                            },
+                            {
+                                name:'game06-game10',
+                                type:'line',
+                                stack: '总量',
+                                data:[22, 12, 19, 23, 29, 33, 31, 30.0]
+                            },
+                            {
+                                name:'game11-game15',
+                                type:'line',
+                                stack: '总量',
+                                data:[15, 23, 20, 14, 19, 30, 10]
+                            },
+                            {
+                                name:'game16-game20',
+                                type:'line',
+                                stack: '总量',
+                                data:[30, 32, 31, 34, 90, 30, 20]
+                            },
+                            {
+                                name:'game21-game25',
+                                type:'line',
+                                stack: '总量',
+                                data:[20, 32, 31, 34, 12, 30, 20]
+                            }
+                        ]
+                }; // 为echarts对象加载数据
+                myChart.setOption(option);
+
+            }
+            )
+    </script>
+
+
+</body>

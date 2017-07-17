@@ -1,0 +1,18 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <link rel="shortcut icon" href="/static/image/ico.png" type="image/x-icon">
+    <title>传世挂机</title>
+</head>
+<body>
+<fieldset style="width: 300px;">
+    <legend>登陆</legend>
+        <form action="/login/" method="POST">
+            <p>用户名:{{ form.username }}</p>
+            <p>密 码: {{ form.password }}</p>
+            <input type="submit" value="登陆" /><br />
+            <div style="height:20px;color:red">{{ error }}</div>
+        </form>
+</fieldset>
+</body>
+</html>

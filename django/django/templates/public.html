@@ -1,0 +1,91 @@
+{% load staticfiles %}
+<html>
+<head>
+    <link rel="shortcut icon" href="/static/image/ico.png" type="image/x-icon">
+    <link type="text/css" rel="stylesheet" href="{% static 'css/create.css' %}" />
+
+    <link rel="stylesheet" type="text/css" href="{% static 'css/bootstrap.css' %}" />
+<!-- Include Date Range Picker -->
+<link rel="stylesheet" type="text/css" href="{% static 'css/daterangepicker.css' %}" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/font-awesome.min.css' %}" />
+
+    <script type="text/javascript"></script>
+    <script src="{% static 'js/jquery.js' %}"></script>
+	
+    <title>传世挂机</title>
+
+    <style>
+        .head-band {
+            width: 100%;
+            /*position: fixed;*/
+            position: relative;
+            top: 0;
+            left: 0;
+            z-index: 0;
+            height: 44px;
+            background-color: #2459a2;
+        }
+        .head-content {
+            margin: 0 auto;
+            line-height: 44px;
+            position: relative;
+
+        }
+        .action-menu {
+
+            float: left;
+            margin-left: 10px;
+
+        }
+        .action-menu a.tb {
+            color: #c0cddf;
+            margin-left: -7px;
+            padding: 0 13px 0 16px;
+        }
+        .action-menu a.active, .action-menu a.active:hover {
+            color: #fff;
+            background-color: #204982;
+        }
+        .action-menu a.tb, .action-nav a {
+            display: inline-block;
+            vertical-align: 1px\9;
+        }
+        .set-nav .active:hover, a {
+            text-decoration: none;
+        }
+        .user-name {
+            position: absolute;
+            top: 0px;
+            right:100px;
+            color: #faffff;
+        }
+        .logout {
+            position: absolute;
+            top: 0px;
+            right: 50px;
+            color: #faffff;
+        }
+
+    </style>
+</head>
+<body>
+<div class="head-band">
+    <div class="head-content">
+        <div class="action-menu" >
+            <a href="/index/" class="tb active">服务器管理</a>
+            <a href="/create/" class="tb active">创建服务器</a>
+            <a href="/view/" class="tb active">服务器折线图</a>
+            <span class="user-name">用户:{{ user }}</span>
+            <span ><a href="/logout/" class="logout">退出</a></span>
+        </div>
+    </div>
+</div>
+<div style="position: relative;top:44px;left: 10px;">
+    {% block content %}
+    {% endblock %}
+</div>
+</body>
+</html>
+
+
+

@@ -1,0 +1,137 @@
+{% extends 'public.html' %}
+{% block content %}
+{% load MyMethod %}
+<h1>服务器管理</h1>
+    <style type="text/css">
+        .hi{
+            display: none;
+        }
+        .I {
+            height:10px;
+            border-bottom:1px solid #e3e6eb;
+            font-weight:normal;
+            clear:both;
+        }
+        .M {
+            table-layout: fixed;
+            width:100%;
+        }
+
+    </style>
+
+
+<table>
+<td><button onclick="Start();">启动</button></td>
+<td><button onclick="Stop();">停止</button></td>
+<td><button onclick="Restart();">重启</button></td>
+<td><button onclick="Update();">更新</button></td>
+<td><button onclick="Delete();">删除</button></td>
+</table>
+<hr />
+<table class="M I" style="background-color: antiquewhite">
+    <td style="width: 1px"><input type="checkbox" id="selectall" /></td>
+    <td style="width: 10px">服务器名称</td>
+    <td style="width: 15px">服务器ID</td>
+    <td style="width: 30px">服务器IP地址</td>
+    <td style="width: 50px">服务器状态</td>
+</table>
+{% for i in data %}
+    <table id="{{ i.ServerId }}" class="I M">
+        <td style="width: 1px"><label for="{{ i.Name }}"></label><input id="{{ i.Name }}" type="checkbox" name="checkbox" value="{{ i.Name }}:{% ipfilter i.Address %}:{{ i.ServerId }}" /></td>
+        <td style="width: 10px">{{ i.Name }}</td>
+        <td style="width: 15px;">{{ i.ServerId }}</td>
+        <td style="width: 30px">{% ipfilter i.Address %}</td>
+        <td style="width: 50px"><img src="/static/image/nomal.png" height="38" /></td>
+    </table>
+{% endfor %}
+
+
+
+<script type="text/javascript" src="/static/js/jquery.js"></script>
+<script type="text/javascript">
+    $("#selectall").click(function () {
+        if(this.checked){
+            $("input[name='checkbox']").each(function () {
+                this.checked=true;
+            })
+        }else{
+            $("input[name='checkbox']").each(function () {
+                this.checked=false;
+            })
+        }
+    });
+
+    
+    function Delete() {
+        var ser_id = [];
+        var all_data = [];
+        $("input[name='checkbox']:checked:checked").each(function () {
+            ser_id.push($(this).val().split(':')[2]);
+            all_data.push($(this).val());
+        });
+
+        $.ajax({
+            url:"/start/",
+            data:{id:all_data},
+            traditional:true,
+            type:"POST",
+            success:function (callback) {
+                console.log(callback);
+                result = ser_id;
+                console.log(result);
+
+                for (var i in result){
+                    $("table[id="+result[i]+"]").remove();
+                    $("label[id="+result[i]+"]").remove();
+
+                }
+            }
+        });
+
+    }
+
+
+    function Start() {
+        var ser_id = [];
+        $("input[name='checkbox']:checked:checked").each(function () {
+            ser_id.push($(this).val());
+        });
+        console.log(ser_id);
+        $.ajax({
+            url:"/start/",
+            data:{id:ser_id},
+            traditional:true,
+            type:"POST",
+            success:function (result) {
+                console.log(result);
+            }
+        });
+        $("input[type='checkbox']").each(function () {
+            this.checked = false;
+        })
+    }
+    function Stop() {
+
+        $("input[type='checkbox']").each(function () {
+            this.checked = false;
+        })
+    }
+    function Update() {
+        $("input[type='checkbox']").each(function () {
+            this.checked = false;
+        })
+    }
+    function Restart() {
+        $("input[type='checkbox']").each(function () {
+            this.checked = false;
+        })
+    }
+
+
+
+
+
+</script>
+
+{% endblock %}
+
