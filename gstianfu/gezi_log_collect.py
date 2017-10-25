@@ -75,7 +75,7 @@ if os.path.isfile("%s/%s"% (log_dir,file_name)):
 					},
 					"time": value_time,
 					"fields": {
-						"value": data[4]
+						"value": float(data[4])
 					}	
 				}
 			]
