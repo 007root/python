@@ -44,18 +44,14 @@ def update_time(stamp):
 
 if logs:
     logs_list = logs.strip('\n').split('\n')
-    logger.info('write count %s'% len(logs_list))
-    for i in logs_list:
-        fl.emit('slowquery',i)
-    else:
-        update_time(i.split(' ')[0])
-        logger.info('Last date "%s"'% i.split(' ')[0])
+    up_time = logs_list[-1].split(' ')[0]
+    if timestamp != up_time:
+        logger.info('write count %s' % len(logs_list))
+        for i in logs_list:
+            fl.emit('slowquery',i)
+        else:
+            update_time(up_time)
+            logger.info('Last date "%s"' % up_time)
 else:
     logger.info('Not data')
-    logs = os.popen("grep -a -v 'aggregate' %s \
-                | grep -a -A 100 '%s' | tail -1" % (log_path, timestamp)).read()
-    new_time = logs.split(' ')[0]
-    update_time(new_time)
-    logger.info('Update timestamp to %s'% new_time)
-    
     
