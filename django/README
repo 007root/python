@@ -1,0 +1,8 @@
+use nginx 
+
+server {
+        listen 80;
+        location /build/dist {
+                alias /home/ubuntu/django/static/js/;
+        }
+}
