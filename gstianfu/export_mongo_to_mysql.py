@@ -29,9 +29,9 @@ def get_user_id(uid=None):
 
 
 result = get_user_id()
-while True:
+while result.count():
     for user in result:
-        if user.get("user_id", None):
+        if user.get("user_id"):
             ret = session.find({"$and": [{"user_id": user["user_id"]}, {"expire_date": {"$gt": datetime.today()}}]})
             if ret.count() != 0:
                 for r in ret:
@@ -43,6 +43,5 @@ while True:
                 v_list = []
     else:
         result = get_user_id(user["user_id"])
-    if result.count() == 0:
-        break
+
 
