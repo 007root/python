@@ -1,9 +1,9 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #_*_ coding:utf8 _*_
 
 import os
 import commands
-import urllib
+import requests
 import json
 import sys
 try:
@@ -17,8 +17,8 @@ except:
 city_list = []
 for i in f.xreadlines():
 	url = "http://ip.taobao.com/service/getIpInfo.php?ip=%s"%i
-	data = urllib.urlopen(url)
-	result = data.read()
+	data = reqeusts.get(url).content
+	result = str(data, encoding="utf8")
 	dic = json.loads(result)
 	if dic[u'data'][u'region']:
 		city_list.append(dic[u'data'][u'region'])
