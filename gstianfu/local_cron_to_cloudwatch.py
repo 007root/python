@@ -73,7 +73,7 @@ def to_utc(hour, day, week):
                 utc_h = hours_to_utc(hour)
                 ret["hour"] = utc_h
         ret["week"] = ["?"]
-    elif ret_day:
+    elif ret_day and not ret_hour:
         utc_h = hours_to_utc(hour)
         ret["hour"] = utc_h
     else:
