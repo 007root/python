@@ -120,7 +120,7 @@ def to_utc(hour, day, week):
 
 def get_parse():
     arg = argparse.ArgumentParser()
-    arg.add_argument("-c", "--convert", default="", 
+    arg.add_argument("-c", "--convert", default="", required=True, 
                         help='Convert linux crontab eg("3 4-7 4 * *")\
                          to AWS CloudWatch ("3 20-23 3 * ? *")')
     return arg.parse_args()
