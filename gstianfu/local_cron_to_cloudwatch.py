@@ -92,15 +92,21 @@ def to_utc(bj_minute, bj_hour, bj_day, bj_month, bj_week):
     if h_ret["yesterday"]:
         d_ret = day_to_utc(bj_day)
         if "*" in d_ret[0]:
-            w_ret = [bj_week]
-            d_ret[0] = "?"
+            if "*" in bj_week:
+                w_ret = ["?"]
+            else:
+                w_ret = [bj_week]
+                d_ret[0] = "?"
         else:
             w_ret = ["?"]
     else:
         d_ret = [bj_day]
         if "*" in d_ret[0]:
-            w_ret = week_to_utc(bj_week)
-            d_ret[0] = "?"
+            if "*" in bj_week:
+                w_ret = ["?"]
+            else:
+                w_ret = week_to_utc(bj_week)
+                d_ret = ["?"]
         else:
             w_ret = ["?"]
     ret["day"] = d_ret
