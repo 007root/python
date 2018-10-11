@@ -5,9 +5,6 @@
 # author: wangzhishuai
 # date: 2018/03/30
 
-import commands as cmd
-import re
-from collections import Counter
 import datetime 
 import time
 from weixin_api.ops import *
@@ -15,47 +12,92 @@ import boto3
 from dateutil.tz import tzutc
 
 
-# EC2 monitor
-TIMEFORMAT = '%Y-%m-%d'
 today = datetime.date.today()
-name = re.compile(r'[\d\w]*\.[\d\w]*')
-number = re.compile(r'\d\n')
-end_time = re.compile(r'\d{4}-\d{2}-\d{2}')
-ec2 = "aws ec2 describe-instances --query 'Reservations[*].Instances[*].[InstanceType]'"
-ec2_reserved = 'aws ec2 describe-reserved-instances' \
-           + ' --filters "Name=instance-type,Values=%s" "Name=state,Values=active"' \
-           + ' --query "ReservedInstances[*].[End,InstanceCount]"'
+now = datetime.datetime.now(tzutc()) 
 
+# EC2 monitor
+ec2_client = boto3.client('ec2')
+ec2_inst_ret = ec2_client.describe_instances()
+ec2_instances = ec2_inst_ret.get('Reservations')
+ec2_rese_ret = ec2_client.describe_reserved_instances()
+ec2_reserved = ec2_rese_ret.get('ReservedInstances')
 
-st, msg = cmd.getstatusoutput(ec2)
-
-if st != 0:
-    send_text(agentid, msg)
-else:
-    name_list = name.findall(msg)
-    name_dict = Counter(name_list)
-    if name_dict.get('t2.micro'):
-        name_dict.pop('t2.micro') # ignore t2.micro
-
-    for k,v in name_dict.items():
-        st, msg = cmd.getstatusoutput(ec2_reserved % k)
-        if st != 0:
-            send_text(agentid, msg)
-        else:
-            end = end_time.findall(msg)
-            num = number.findall(msg)
-            total = sum(map(lambda x:int(x.strip('\n')) ,num))
-            if v > total:
-                send_text(agentid,'Warning: EC2 %s not enough reserved instance (%s/%s) !!!' % (k, v, total))
+## get ec2 instances info
+linux_instances = {}
+other_instances = {}
+for e_i in ec2_instances:
+    platform = e_i.get('Instances')[0].get('Platform')
+    instance_type = e_i.get('Instances')[0].get('InstanceType')
+    if platform:
+        if linux_instances.get(platform):
+            if linux_instances.get(platform).get(instance_type):
+                other_instances[platform][instance_type] += 1
             else:
-                end.sort()
-                day = (datetime.datetime.strptime(end[0], TIMEFORMAT) - datetime.datetime(today.year, today.month, today.day)).days
-                if day <= 0:
-                    send_text(agentid, 'Warning: EC2 %s reserved instance will expire today !!!' % k)
+                other_instances[platform][instance_type] = 1
+        else:
+            other_instances[platform] = {}
+            other_instances[platform][instance_type] = 1
+    else:
+        if linux_instances.get(instance_type):
+            linux_instances[instance_type] += 1
+        else:
+            linux_instances[instance_type] = 1
+
+if linux_instances.get('t2.micro'):
+    linux_instances.pop('t2.micro') # ignore t2.micro
+
+## get ec2 reserved info
+linux_reserved = {}
+other_reserved = {}
+ec2_rese_expire = []
+ec2_lack = []
+for e_r in ec2_reserved:
+    state = e_r.get('State')
+    product = e_r.get('ProductDescription')
+    instance_type = e_r.get('InstanceType')
+    instance_count = e_r.get('InstanceCount')
+    end = e_r.get('End')
+    if state == 'active':
+        if 'Linux' in product:
+            if linux_reserved.get(instance_type):
+                linux_reserved[instance_type] += instance_count
+            else:
+                linux_reserved[instance_type] = instance_count
+        ## calculating expiration time
+        exp = end - now
+        if exp.days <= 0:
+            ec2_rese_expire.append('%s  %s  %s' % (product, instance_type, instance_count))
+
+## collect lack ec2 instance
+for e_inst, e_coun in linux_instances.items():
+    res_count = linux_reserved.get(e_inst)
+    if res_count:
+        if res_count != e_coun:
+            ec2_lack.append('Linux  %s  %s  %s' % (inst, e_coun, res_count))
+    else:
+        ec2_lack.append('Linux  %s  %s  %s' % (e_inst, e_coun, 0))
+
+for o_inst, o_type in other_instances.items():
+    o_platform = other_reserved.get(o_inst)
+    if not o_platform:
+        _t = ''.join(o_type.keys())
+        ec2_lack.append('%s  %s  %s  %s' % (o_inst, _t, o_type.get(_t), 0))
+
+## send msg
+if ec2_rese_expire:
+    e_msg = """Warning: EC2 reserved instance will expire today:\n Product Instance Count\n"""
+    for e_e in ec2_rese_expire:
+        e_msg += e_e + '\n'
+    send_text(agentid, e_msg)
+
+if ec2_lack:
+    l_msg = """Warning: EC2 not enough reserved instance:\n Product Instance Count Reserved\n"""
+    for e_l in ec2_lack:
+        l_msg += e_l + '\n'
+    send_text(agentid, l_msg)
 
 
 # RDS monitor
-now = datetime.datetime.now(tzutc()) 
 client = boto3.client('rds')
 db_ret = client.describe_db_instances()
 db_instances = db_ret.get('DBInstances')
