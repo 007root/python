@@ -91,6 +91,10 @@ for o_inst, o_type in other_instances.items():
     if not o_platform:
         _t = ''.join(o_type.keys())
         ec2_lack.append('%s  %s  %s  %s' % (o_inst, _t, o_type.get(_t), 0))
+    else:
+        for o_k, o_v in o_type.items():
+            if o_v != o_platform[o_k]:
+                ec2_lack.append('%s %s %s %s' % (o_inst, o_k, o_v, o_platform[o_k]))
 
 ## send msg
 if ec2_rese_expire:
