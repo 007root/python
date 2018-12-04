@@ -65,13 +65,13 @@ for e_r in ec2_reserved:
                 linux_reserved[instance_type] = instance_count
         else:
             if other_reserved.get(product):
-                if other_reserved.get(product).get(instance_type):
-                    other_reserved[product][instance_type] += instance_count
+                if other_reserved.get(product.lower()).get(instance_type):
+                    other_reserved[product.lower()][instance_type] += instance_count
                 else:
-                    other_reserved[product][instance_type] = instance_count
+                    other_reserved[product.lower()][instance_type] = instance_count
             else:
-                other_reserved[product] = {}
-                other_reserved[product][instance_type] = instance_count
+                other_reserved[product.lower()] = {}
+                other_reserved[product.lower()][instance_type] = instance_count
         ## calculating expiration time
         exp = end - now
         if exp.days <= 0:
