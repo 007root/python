@@ -82,7 +82,7 @@ for e_inst, e_coun in linux_instances.items():
     res_count = linux_reserved.get(e_inst)
     if res_count:
         if res_count != e_coun:
-            ec2_lack.append('Linux  %s  %s  %s' % (inst, e_coun, res_count))
+            ec2_lack.append('Linux  %s  %s  %s' % (e_inst, e_coun, res_count))
     else:
         ec2_lack.append('Linux  %s  %s  %s' % (e_inst, e_coun, 0))
 
