@@ -15,6 +15,42 @@ from dateutil.tz import tzutc
 today = datetime.date.today()
 now = datetime.datetime.now(tzutc()) 
 
+
+def get_lack(ins, rese):
+    lack = {}
+    for instance,engine in ins.items():
+        res = rese.get(instance)
+        if not res:
+            if lack.get(instance):
+                lack[instance].update = engine
+            else:
+                lack[instance] = engine
+            continue
+            
+        for k, e_count in engine.items():
+            res_count = res.get(k)
+            if res_count and res_count != e_count:
+                count = e_count - res_count
+                if lack.get(instance):
+                    lack[instance].update({k: count})
+                else:
+                    lack[instance] = {k: count}
+    return lack
+
+
+def send_message(name, lack, expire):
+    if lack:
+        lack_context = ''
+        for k,v in lack.items():
+            lack_context += k + ': ' + str(v) + '\n'
+        send_text(agentid,'Warning: %s not enough reserved instance !!!.\n Need to increase\n %s' % (name, lack_context))
+    if expire:
+        exp_context = ''
+        for i in expire:
+            exp_context += i + '\n'
+        send_text(agentid, 'Warning: %s\n %s reserved instance will expire today !!!' % (name, exp_context))
+ 
+
 # EC2 monitor
 ec2_client = boto3.client('ec2')
 ec2_inst_ret = ec2_client.describe_instances()
@@ -65,7 +101,7 @@ for e_r in ec2_reserved:
                 linux_reserved[instance_type] = instance_count
         else:
             if other_reserved.get(product):
-                if other_reserved.get(product.lower()).get(instance_type):
+                if other_reserved.get(product).get(instance_type):
                     other_reserved[product.lower()][instance_type] += instance_count
                 else:
                     other_reserved[product.lower()][instance_type] = instance_count
@@ -119,7 +155,7 @@ reserved_instances = reserved_ret.get('ReservedDBInstances')
 
 
 rds_reserved = {}
-expire_time = []
+rds_expire = []
 for r in reserved_instances:
     state = r.get('State')
     instance = r.get('DBInstanceClass')
@@ -137,7 +173,7 @@ for r in reserved_instances:
             rds_reserved[instance] = {engine: instance_count}
         
         if total_day - (now - start_time).days == 0:
-            expire_time.append(instance + ': ' + engine + ': ' + str(instance_count) + ',')
+            rds_expire.append(instance + ': ' + engine + ': ' + str(instance_count) + ',')
 
 rds = {}
 for i in db_instances:
@@ -151,35 +187,53 @@ for i in db_instances:
     else:
         rds[instance] = {engine: 1}
 
-lack = {}
 if rds.get('db.t2.micro'):
     rds.pop('db.t2.micro') # ignore db.t2.micro
-for instance,engine in rds.items():
-    res = rds_reserved.get(instance)
-    if not res:
-        if lack.get(instance):
-            lack[instance].update = engine
-        else:
-            lack[instance] = engine
-        continue
-        
-    for k,db_count in engine.items():
-        res_count = res.get(k)
-        if res_count != db_count:
-            if  lack.get(instance):
-                lack[instance].update({k:db_count - res_count})
+
+rds_lack = get_lack(rds, rds_reserved)
+send_message('RDS', rds_lack, rds_expire)
+
+
+# Memcache monitor
+# get reserved info
+mem_client = boto3.client('elasticache')
+mem_rese_ret = mem_client.describe_reserved_cache_nodes().get('ReservedCacheNodes')
+mem_reserved = {}
+mem_expire = []
+for m_r in mem_rese_ret:
+    if m_r.get('State') == 'active':
+        productDescription = m_r.get('ProductDescription')
+        cacheNodeCount = m_r.get('CacheNodeCount')
+        startTime = m_r.get('StartTime')
+        duration = m_r.get('Duration') / 86400
+        cacheNodeType = m_r.get('CacheNodeType')
+        if mem_reserved.get(productDescription):
+            if mem_reserved.get(productDescription).get(cacheNodeType):
+                mem_reserved[productDescription][cacheNodeType] += cacheNodeCount
             else:
-                lack[instance] = {k:db_count - res_count}
-    
-if lack:
-    lack_context = ''
-    for k,v in lack.items():
-        lack_context += k + ': ' + str(v) + '\n'
-    send_text(agentid,'Warning: RDS not enough reserved instance !!!.\n Need to increase\n %s' % lack_context)
-if expire_time:
-    exp_context = ''
-    for i in expire_time:
-        exp_context += i + '\n'
-    send_text(agentid, 'Warning: RDS\n %s reserved instance will expire today !!!' % exp_context)
-    
-    
+                mem_reserved[productDescription][cacheNodeType] = cacheNodeCount
+        else:
+            mem_reserved[productDescription] = {cacheNodeType: cacheNodeCount}
+        if duration - (now - startTime).days == 0:
+            mem_expire.append(cacheNodeType + ': ' + productDescription + ': ' + str(cacheNodeCount))
+
+
+# get instance info
+mem_inst_ret = mem_client.describe_cache_clusters().get('CacheClusters')
+mem_instance = {}
+for m_i in mem_inst_ret:
+    engine = m_i.get('Engine')
+    numCacheNodes = m_i.get('NumCacheNodes')
+    cacheNodeType = m_i.get('CacheNodeType')
+    if mem_instance.get(engine):
+        if mem_instance.get(engine).get(cacheNodeType):
+            mem_instance[engine][cacheNodeType] += numCacheNodes
+        else:
+            mem_instance[engine][cacheNodeType] = numCacheNodes
+    else:
+        mem_instance[engine] = {cacheNodeType: numCacheNodes}
+
+
+mem_lack = get_lack(mem_instance, mem_reserved)
+send_message('ElasticCache', mem_lack, mem_expire)
+
