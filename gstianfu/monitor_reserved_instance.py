@@ -65,8 +65,8 @@ for e_i in ec2_instances:
     platform = e_i.get('Instances')[0].get('Platform')
     instance_type = e_i.get('Instances')[0].get('InstanceType')
     if platform:
-        if linux_instances.get(platform):
-            if linux_instances.get(platform).get(instance_type):
+        if other_instances.get(platform):
+            if other_instances.get(platform).get(instance_type):
                 other_instances[platform][instance_type] += 1
             else:
                 other_instances[platform][instance_type] = 1
