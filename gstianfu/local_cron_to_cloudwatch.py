@@ -33,7 +33,7 @@ def hours_to_utc(arg):
     hour = re.split(',|-', arg)
     hour = [int(i) for i in hour]
     other_day = filter(lambda x: x < 8, hour)
-    today = filter(lambda x: x > 8, hour)
+    today = filter(lambda x: x >= 8, hour)
     hour_num = len(hour)
     if len(other_day) == hour_num:
         ret["yesterday"] = True
