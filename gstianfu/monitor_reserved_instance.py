@@ -172,7 +172,7 @@ for r in reserved_instances:
         else:
             rds_reserved[instance] = {engine: instance_count}
         
-        if total_day - (now - start_time).days == 0:
+        if total_day - (now - start_time).days == 1:
             rds_expire.append(instance + ': ' + engine + ': ' + str(instance_count) + ',')
 
 rds = {}
